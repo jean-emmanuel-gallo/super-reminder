@@ -1,52 +1,68 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="style.css" rel="stylesheet">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300&display=swap" rel="stylesheet">
-    <title>TodoList</title>
-</head>
-<body>
-    <header>
-        <nav>
-            <div>
-                <img class="logo" src="tools.png">
-            </div>
-            <ul>
-                <input type="search" name="Search_bar">
-                <li><a href="#">Login</a></li>
-                <li><a href="#">Register</a></li>
-                <li><a href="#">Tools</a></li>
-            </ul>
-        </nav>
-    </header>
-<main>
-    <div class="container">
-        <h1>Sign Up</h1>
-        <form action="" method="POST" id="theForm">
-            <label for="user_name">Name: <span></span></label>
-            <input type="text" class="input" name="name" <?php post_value("name"); ?>-attr-name"><?php post_value("name"); ?> id="user_name" placeholder="Your name">
+<?php
+function on_register($conn)
+{
+    $name = htmlspecialchars(trim($_POST['name']));
+    $email = trim($_POST['email']);
+    $pass = trim($_POST['password']);
 
-            <label for="user_email">Email: <span></span></label>
-            <input type="email" class="input" name="email" <?php post_value("email"); ?>-attr-name"><?php post_value("email"); ?> id="user_email" placeholder="Your email">
+    if (empty($name) || empty($email) || empty($pass)) {
+        $arr = [];
+        if (empty($name)) $arr["name"] = "Must not be empty.";
+        if (empty($email)) $arr["email"] = "Must not be empty.";
+        if (empty($pass)) $arr["password"] = "Must not be empty.";
+        return [
+            "ok" => 0,
+            "field_error" => $arr
+        ];
+    }
 
-            <label for="user_pass">Password: <span></span></label>
-            <input type="password" class="input" name="password" <?php post_value("password"); ?>-attr-name"><?php post_value("password"); ?> id="user_pass" placeholder="New password">
-            <?php if(isset($result["msg"])){ ?>
-            <p class="msg<?php if($result["ok"] === 0){ echo " error"; } ?>"><?php echo $result["msg"]; ?></p>
-            <?php } ?>
-            <input type="submit" value="Sign Up">
-            <div class="link"><a href="./login.php">Login</a></div>
-        </form>
-    </div>
-</main>
-    <footer>
-        <span>Sommaire</span>
-        <ul class="summary">
-        </ul>
-    </footer>
-</body>
-</html>
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        return [
+            "ok" => 0,
+            "field_error" => [
+                "email" => "Invalid email address."
+            ]
+        ];
+    }
+
+    if(strlen($pass) < 4){
+        return [
+            "ok" => 0,
+            "field_error" => [
+                "password" => "Must be at least 4 characters."
+            ]
+        ];
+    }
+
+    $sql = "SELECT `email` FROM `users` WHERE `email` = ?";
+    $stmt = mysqli_prepare($conn, $sql);
+    mysqli_stmt_bind_param($stmt, "s", $email);
+    mysqli_stmt_execute($stmt);
+    mysqli_stmt_store_result($stmt);
+    if(mysqli_stmt_num_rows($stmt) !== 0){
+        return [
+            "ok" => 0,
+            "field_error" => [
+                "email" => "This Email is already registered."
+            ]
+        ];
+    }
+
+    $pass = password_hash($pass, PASSWORD_DEFAULT);
+
+    $sql = "INSERT INTO `users` (`name`, `email`, `password`) VALUES (?,?,?)";
+    $stmt = mysqli_prepare($conn, $sql);
+    mysqli_stmt_bind_param($stmt, "sss", $name,$email,$pass);
+    $is_inserted = mysqli_stmt_execute($stmt);
+    if($is_inserted){
+        return [
+            "ok" => 1,
+            "msg" => "You have been registered successfully.",
+            "form_reset" => true
+        ];
+    }
+    return [
+        "ok" => 0,
+        "msg" => "Something going wrong!"
+    ];
+}
