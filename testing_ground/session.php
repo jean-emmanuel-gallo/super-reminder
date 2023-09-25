@@ -27,11 +27,8 @@
     <section>
         <div class="widget">
             <!-- <h1><?php echo "Hello", $_SESSION["name"];?></h1> -->
-            <ul>
-                <p>{{placeholder}}</p>
-                <p>{{placeholder}}</p>
-                <p>{{placeholder}}</p>
-                <p>{{placeholder}}</p>
+            <ul class="taches">
+                <h1>Taches</h1>
                 <input type="text"  id="todoAdd">
                 <button id="add">Ajouter</button>
                 <button id="bouton">Sauvegarde</button>
