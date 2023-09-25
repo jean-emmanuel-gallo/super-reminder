@@ -23,22 +23,26 @@
             </ul>
         </nav>
     </header>
-        <main>
-        <div class="container">
-            <h1>Login</h1>
-            <form action="" method="POST">
-                <label for="user_email">Email: <span></span></label>
-                <input type="email" class="input" name="email" <?php post_value("email"); ?>-attr-name">
-                <?php post_value("email"); ?> id="user_email" placeholder="Your email">
-                <label for="user_pass">Password: <span></span></label>
-                <input type="password" class="input" name="password">
-                <?php post_value("password"); ?>-attr-name">
-                <?php post_value("password"); ?> id="user_pass" placeholder="Your password">
-                <input type="submit" value="Login">
-                <div class="link"><a href="./register.php">Sign Up</a></div>
-            </form>
-        </div>  
-        </main>
+<main>
+    <div class="container">
+        <h1>Sign Up</h1>
+        <form action="" method="POST" id="theForm">
+            <label for="user_name">Name: <span></span></label>
+            <input type="text" class="input" name="name" <?php post_value("name"); ?>-attr-name"><?php post_value("name"); ?> id="user_name" placeholder="Your name">
+
+            <label for="user_email">Email: <span></span></label>
+            <input type="email" class="input" name="email" <?php post_value("email"); ?>-attr-name"><?php post_value("email"); ?> id="user_email" placeholder="Your email">
+
+            <label for="user_pass">Password: <span></span></label>
+            <input type="password" class="input" name="password" <?php post_value("password"); ?>-attr-name"><?php post_value("password"); ?> id="user_pass" placeholder="New password">
+            <?php if(isset($result["msg"])){ ?>
+            <p class="msg<?php if($result["ok"] === 0){ echo " error"; } ?>"><?php echo $result["msg"]; ?></p>
+            <?php } ?>
+            <input type="submit" value="Sign Up">
+            <div class="link"><a href="./login.php">Login</a></div>
+        </form>
+    </div>
+</main>
     <footer>
         <span>Sommaire</span>
         <ul class="summary">
@@ -49,41 +53,35 @@
 
 
 <?php 
-    class Database {
+include 'inscription.php';
+    class connexion extends Database {
         public string $userdb = "root";
         public string $password = ""; 
 
-        //Connection à la database
-        public function register($login,$password){
-            $pdo = new PDO('mysql:host=localhost;dbname=moduleconnexionb2;charset=utf8','root','');
-
-            $stm = $pdo->prepare("INSERT INTO user (login,password) VALUES (:login,:password)");
-            $stm->bindValue(':login', $login, PDO::PARAM_STR);
-            $stm->bindValue(':password', $password, PDO::PARAM_STR);
-            $stm->execute();
+        //requete database
+        
+        public function login($login,$password)
+        {
+            session_start();
+            $data = new PDO('mysql:host=localhost;dbname=moduleconnexionb2;charset=utf8','root','');
+            $récup = $data->prepare('SELECT * FROM user WHERE login= :login');
+            $récup->bindValue(':login', $login, PDO::PARAM_STR);
+            $récup->execute();
+            $ses = $récup->fetch(PDO::FETCH_ASSOC);
+            //declaration de sessions
+            if(!empty($ses)){
+                $_SESSION["login"] = $ses["login"];
+                echo  $ses["login"];
+            }
         }
         // hasher le mdp 
         // mettre les classes et le html dans des fichiers différent 
-        
-            // private function passwordverify($login,$password){
-            //     if(strlen($email) > 8){
-            //         return true;
-            //     }
-            //     elseif(strlen($password) > 8){
-            //         return true;
-            //     }
-            //     else{
-            //         return false;
-            //     }
-            // }
     }
-//envoie du formulaire
+
     if(isset($_POST["submit"])){
         $login = $_POST["login"];
         $password = password_hash($_POST["password"], PASSWORD_BCRYPT);
-        echo "Succès";
-        $databaseInstances = new Database();
-        $databaseInstances->register($login,$password);
+        $databaseInstances = new connexion();
+        $databaseInstances->login($login,$password);
     }
-
 ?>
