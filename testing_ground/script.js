@@ -1,14 +1,15 @@
 document.addEventListener("DOMContentLoaded", (event) => {
-    let todolist = document.querySelectorAll("p")
+    let todolist = document.querySelector(".taches")
     let btn = document.querySelector("#bouton")
 
     datalist = []
     btn.addEventListener("click", (event) => {
         event.preventDefault()
         let todoHTML = ""
-
-        todolist.forEach(paragraphe => {
-            todoHTML += paragraphe.innerHTML
+        let taches = document.querySelectorAll(".tache")
+        console.log(taches)
+        taches.forEach(paragraphe => {
+            todoHTML +=  " "  + paragraphe.innerHTML
         })
 
         fetch(`traitement.php?param1=${encodeURIComponent(todoHTML)}`, {
@@ -18,7 +19,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
             return response.text();
         })
         .then(data => {
-            console.log('Data received:', data.slice(3));
+            console.log('Data received:', data);
         })
         .catch(error => {
             console.error('Error:', error);
@@ -30,13 +31,9 @@ document.addEventListener("DOMContentLoaded", (event) => {
 
     add.addEventListener("click", () => {
         let replacementText = replacement.value
-
-        todolist.forEach((paragraphe, i) => {
-            let result = paragraphe.innerHTML.replace(/{{placeholder}}/g, replacementText)
-            paragraphe.innerHTML = result
-
-            datalist[i] = result
-            console.log(datalist[i])
-        })
+        let element = document.createElement("li")
+        element.innerHTML = replacementText
+        element.classList.add("tache")
+        todolist.appendChild(element)
     })
 })
